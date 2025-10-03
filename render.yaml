@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: family-photo-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm run server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
