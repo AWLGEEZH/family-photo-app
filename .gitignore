@@ -11,3 +11,5 @@ yarn-error.log*
 # Production environment files
 .env.production
 client/.env.production
+# Temporary .env for Railway deployment
+# .env
