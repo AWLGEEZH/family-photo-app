@@ -5,13 +5,23 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/database');
 
+console.log('🚀 Starting Family Photo App Server...');
+console.log('Environment:', process.env.NODE_ENV);
+console.log('Port:', process.env.PORT);
+console.log('MongoDB URI provided:', !!process.env.MONGODB_URI);
+console.log('JWT Secret provided:', !!process.env.JWT_SECRET);
+
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const postRoutes = require('./routes/posts');
 
 const app = express();
 
-connectDB();
+// Connect to database with error handling
+connectDB().catch(err => {
+  console.error('Failed to connect to database:', err);
+  console.log('Server will continue without database connection for debugging...');
+});
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
