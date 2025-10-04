@@ -8,4 +8,7 @@ cmds = ['npm install --production']
 cmds = ['echo "No build step needed for backend"']
 
 [start]
-cmd = 'npm run server'
+cmd = 'node server/index.js'
+
+[variables]
+PORT = '8080'
