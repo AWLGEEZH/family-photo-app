@@ -36,10 +36,26 @@ app.use(helmet({
   },
 }));
 
+// CORS configuration - support multiple frontend URLs
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [
+      'https://family-fotos.com',
+      'https://www.family-fotos.com',
+      ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : [])
+    ]
+  : ['http://localhost:3000'];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? [process.env.CLIENT_URL || 'https://family-moments.vercel.app']
-    : ['http://localhost:3000'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
