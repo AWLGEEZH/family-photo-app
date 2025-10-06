@@ -2,7 +2,6 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 const { validationResult } = require('express-validator');
-const fs = require('fs').promises;
 
 const createPost = async (req, res) => {
   try {
@@ -28,15 +27,14 @@ const createPost = async (req, res) => {
     try {
       for (const file of req.files) {
         const resourceType = file.mimetype.startsWith('video/') ? 'video' : 'image';
-        const uploadResult = await uploadToCloudinary(file.path, resourceType);
+        // Upload from memory buffer instead of file path
+        const uploadResult = await uploadToCloudinary(file.buffer, resourceType);
 
         mediaUploads.push({
           type: resourceType,
           url: uploadResult.url,
           publicId: uploadResult.publicId
         });
-
-        await fs.unlink(file.path);
       }
 
       const parsedTags = tags ? JSON.parse(tags) : [];
@@ -58,14 +56,7 @@ const createPost = async (req, res) => {
         post: newPost
       });
     } catch (uploadError) {
-      for (const file of req.files) {
-        try {
-          await fs.unlink(file.path);
-        } catch (unlinkError) {
-          console.error('Error deleting temp file:', unlinkError);
-        }
-      }
-
+      // Clean up any uploaded media on error
       for (const media of mediaUploads) {
         try {
           await deleteFromCloudinary(media.publicId, media.type);

@@ -6,23 +6,35 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const uploadToCloudinary = async (filePath, resourceType = 'auto') => {
+const uploadToCloudinary = async (fileBuffer, resourceType = 'auto') => {
   try {
-    const result = await cloudinary.uploader.upload(filePath, {
-      resource_type: resourceType,
-      folder: 'family-photos',
-      transformation: resourceType === 'video' ? [
-        { width: 1280, height: 720, crop: 'limit', quality: 'auto' }
-      ] : [
-        { width: 1920, height: 1080, crop: 'limit', quality: 'auto:good' }
-      ]
-    });
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: resourceType,
+          folder: 'family-photos',
+          transformation: resourceType === 'video' ? [
+            { width: 1280, height: 720, crop: 'limit', quality: 'auto' }
+          ] : [
+            { width: 1920, height: 1080, crop: 'limit', quality: 'auto:good' }
+          ]
+        },
+        (error, result) => {
+          if (error) {
+            console.error('Cloudinary upload error:', error);
+            reject(new Error('Failed to upload to cloud storage'));
+          } else {
+            resolve({
+              url: result.secure_url,
+              publicId: result.public_id,
+              resourceType: result.resource_type
+            });
+          }
+        }
+      );
 
-    return {
-      url: result.secure_url,
-      publicId: result.public_id,
-      resourceType: result.resource_type
-    };
+      uploadStream.end(fileBuffer);
+    });
   } catch (error) {
     console.error('Cloudinary upload error:', error);
     throw new Error('Failed to upload to cloud storage');
